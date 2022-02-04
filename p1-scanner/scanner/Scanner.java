@@ -19,7 +19,7 @@ public class Scanner {
   // private HashMap hexTransitions;
   private HashMap<Character, String> categoryMap;
   private HashMap<String, HashMap<String, String>> transitionMap;
-  private HashMap tokenTypeMap;
+  private HashMap<String, String> tokenTypeMap;
   // private HashMap registerTransitions;
   //------------------------------------------------------------
   // TODO: build your tables in the constructor and implement
@@ -46,21 +46,24 @@ public class Scanner {
     // Build the transition table. Given a state and a character category,
     // give a new state.
     transitionMap = new HashMap<>();
-    HashMap<String, String> innerMap = new HashMap<>(); // put new HashMap on the heap
+    // HashMap<String, String> innerMap = new HashMap<>(); // put new HashMap on the heap
     for (TableReader.Transition t : tableReader.getTransitions()) {
       System.out.println(t.getFromStateName() + " -- " + t.getCategory()
               + " --> " + t.getToStateName());
-      innerMap.put(t.getCategory(), t.getToStateName()); // put the to state in dict with key cat
-      transitionMap.put(t.getFromStateName(), innerMap); // Put the dict in transition table with key from state
-      System.out.println("Maps state: Inner map: key: " + t.getCategory() 
-                + " value: " innerMap.get(t.getCategory()) + " outer map: ")
+      // innerMap.put(t.getCategory(), t.getToStateName()); // put the to state in dict with key cat
+      // if the key is not already in there
+      if(!transitionMap.containsKey(t.getFromStateName())){
+        transitionMap.put(t.getFromStateName(), new HashMap<String, String>());
+      }
+      transitionMap.get(t.getFromStateName()).put(t.getCategory(), t.getToStateName()); // Put the dict in transition table with key from state
     }
-    // System.out.println("Testing to see if transition map is working: " + transitionMap.get("s0"));
 
     // Build the token types table
+    tokenTypeMap = new HashMap<>();
     for (TableReader.TokenType tt : tableReader.getTokens()) {
       System.out.println("State " + tt.getState()
               + " accepts with the lexeme being of type " + tt.getType());
+      tokenTypeMap.put(tt.getState(), tt.getType());
     }
 
   }
@@ -71,7 +74,10 @@ public class Scanner {
    * or two. You should not have any character literals in here such as 'r' or '3'.
    */
   public String getCategory(Character c) {
-    return "";
+    if(this.categoryMap.containsKey(c)){
+      return this.categoryMap.get(c);
+    }
+    return "not in alphabet";
   }
 
   /**
@@ -81,7 +87,12 @@ public class Scanner {
    * table lookups here.
    */
   public String getNewState(String state, String category) {
-    return "";
+    if(this.transitionMap.containsKey(state)){
+      if(this.transitionMap.get(state).containsKey(category)){
+        return this.transitionMap.get(state).get(category);
+      }
+    }
+    return "error";
   }
 
   /**
@@ -90,7 +101,10 @@ public class Scanner {
    * Do not hardcode any state names or token types.
    */
   public String getTokenType(String state) {
-    return "";
+    if(this.tokenTypeMap.containsKey(state)){
+      return this.tokenTypeMap.get(state);
+    }
+    return "error";
   }
 
   //------------------------------------------------------------
