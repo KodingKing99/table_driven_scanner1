@@ -13,14 +13,13 @@ public class Scanner {
   // your tables. Also declare the start state.
   //------------------------------------------------------------
 
-  ////////////
-  // So, what hash maps do I need? well, I need a transition hashmap fosho
-  ///////////
-  // private HashMap hexTransitions;
   private HashMap<Character, String> categoryMap;
   private HashMap<String, HashMap<String, String>> transitionMap;
   private HashMap<String, String> tokenTypeMap;
-  // private HashMap registerTransitions;
+  // Either the start state, or the current state. Not sure.
+  private String state;
+  private Stack<String> stack;
+
   //------------------------------------------------------------
   // TODO: build your tables in the constructor and implement
   // the get methods.
@@ -66,6 +65,7 @@ public class Scanner {
       tokenTypeMap.put(tt.getState(), tt.getType());
     }
 
+    this.stack = new Stack<>();
   }
 
   /**
@@ -118,6 +118,40 @@ public class Scanner {
     // TODO: get a single token. This is an implementation of the nextToken
     // algorithm given in class. You may *not* use TableReader in this
     // function. Return null if there is a lexical error.
+    this.state = "s0";
+    String lexeme = "";
+    if(!this.stack.empty()){
+      this.stack.clear();
+    }
+    this.stack.push("bad");
+    while(state != "error"){
+      if(ss.eof()){
+        return null;
+      }
+      char c = ss.next();
+      lexeme = lexeme + c;
+      // If the state is accepting 
+      if(this.getTokenType(state) != "error"){
+        if(!this.stack.empty()){
+          this.stack.clear();
+        }
+      }
+      this.stack.push(this.state);
+      String category = this.getCategory(c);
+      this.state = this.getNewState(state, category);
+    }
+    while(this.getTokenType(state) == "error" && this.state != "bad"){
+      if(!this.stack.empty()){
+        state = this.stack.pop();
+      }
+      if(lexeme.length() > 0){
+        lexeme = lexeme.substring(0, lexeme.length() - 1); // truncate
+      }      
+      ss.rollback();
+    } 
+    if(this.getTokenType(state) != "error"){
+      return new Token(this.tokenTypeMap.get(state), lexeme);
+    }
     return null;
   }
 
